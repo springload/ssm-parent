@@ -1,6 +1,6 @@
 # .goreleaser.yml
 builds:
-  - binary: parent
+  - binary: ssm-parent
     goos:
       - darwin
       - linux
