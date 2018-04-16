@@ -1,0 +1,5 @@
+.envrc
+ssm-parent
+*.log
+dist/
+vendor/

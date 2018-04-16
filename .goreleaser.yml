@@ -1,0 +1,8 @@
+# .goreleaser.yml
+builds:
+  - binary: parent
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
