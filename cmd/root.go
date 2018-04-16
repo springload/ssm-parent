@@ -12,7 +12,6 @@ var (
 	names     []string
 	recursive bool
 	strict    bool
-	Version   = "dev"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -24,11 +23,10 @@ var rootCmd = &cobra.Command{
 It gets specified parameters (possibly secret) from AWS SSM Parameter Store,
 then exports them to the underlying process.
 `,
-	Version: Version,
-	//	Run: func(cmd *cobra.Command, args []string) {},
 }
 
-func Execute() {
+func Execute(version string) {
+	rootCmd.Version = version
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
