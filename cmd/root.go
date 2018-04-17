@@ -16,9 +16,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "parent",
+	Use:   "ssm-parent",
 	Short: "Docker entrypoint that get parameters from AWS SSM Parameter Store",
-	Long: `Parent is a docker entrypoint.
+	Long: `SSM-Parent is a docker entrypoint.
 	
 It gets specified parameters (possibly secret) from AWS SSM Parameter Store,
 then exports them to the underlying process.

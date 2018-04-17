@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 
 	"github.com/springload/ssm-parent/ssm"
 
@@ -13,11 +14,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var expand bool
+
 // runCmd represents the run command
 var runCmd = &cobra.Command{
-	Use:   "run",
+	Use:   "run command",
 	Short: "Runs the specified command",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cobraCmd *cobra.Command, args []string) {
+		var cmdArgs []string
+
 		megamap := make(map[string]interface{})
 		parameters, err := ssm.GetParameters(names, paths, strict, recursive)
 		if err != nil {
@@ -41,8 +47,13 @@ var runCmd = &cobra.Command{
 
 		c := make(chan os.Signal, 1)
 		signal.Notify(c)
+		if expand {
+			cmdArgs = expandArgs(args[1:])
+		} else {
+			cmdArgs = args[1:]
+		}
 
-		cmd := exec.Command(command, args[1:]...)
+		cmd := exec.Command(command, cmdArgs...)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -64,6 +75,25 @@ var runCmd = &cobra.Command{
 	},
 }
 
+// expandArgs leverages on shell and echo to expand
+// possible args mainly env vars.
+// taken from https://github.com/abiosoft/parent
+func expandArgs(args []string) []string {
+	var expanded []string
+	for _, arg := range args {
+		e, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("echo %s", arg)).Output()
+		// error is not expected.
+		// in the rare case that this errors
+		// the original arg is still used.
+		if err == nil {
+			arg = strings.TrimSpace(string(e))
+		}
+		expanded = append(expanded, arg)
+	}
+	return expanded
+}
+
 func init() {
+	runCmd.Flags().BoolVarP(&expand, "expand", "e", false, "Expand arguments using /bin/sh")
 	rootCmd.AddCommand(runCmd)
 }
