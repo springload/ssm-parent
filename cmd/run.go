@@ -25,7 +25,13 @@ var runCmd = &cobra.Command{
 		var cmdArgs []string
 
 		megamap := make(map[string]interface{})
-		parameters, err := ssm.GetParameters(names, paths, strict, recursive)
+		localNames := names
+		localPaths := paths
+		if expand {
+			localNames = expandArgs(names)
+			localPaths = expandArgs(paths)
+		}
+		parameters, err := ssm.GetParameters(localNames, localPaths, strict, recursive)
 		if err != nil {
 			log.WithError(err).Fatal("Can't get parameters")
 		}
