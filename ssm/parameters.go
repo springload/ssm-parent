@@ -19,9 +19,9 @@ func makeSession() error {
 		var err error
 		// create AWS session
 		localSession, err = session.NewSessionWithOptions(session.Options{
-			Config:            aws.Config{}, //Region: aws.String(config.Region)},
+			Config:            aws.Config{},
 			SharedConfigState: session.SharedConfigEnable,
-			Profile:           "", //config.Profile,
+			Profile:           "",
 		})
 		if err != nil {
 			return fmt.Errorf("Can't get aws session.")
@@ -53,9 +53,7 @@ func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parame
 			}
 			parameters = append(parameters, value)
 		}
-
 	}
-
 	return
 }
 
