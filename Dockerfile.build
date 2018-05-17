@@ -1,0 +1,13 @@
+FROM golang:1.10-alpine as build
+
+RUN apk update && apk add git
+RUN go get -u github.com/golang/dep/cmd/dep
+
+WORKDIR /go/src/github.com/springload/ssm-parent
+
+ADD Gopkg.lock Gopkg.toml ./
+
+RUN dep ensure -vendor-only
+
+ADD ./ ./
+RUN go build
