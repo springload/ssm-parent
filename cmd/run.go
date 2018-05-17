@@ -42,6 +42,11 @@ var runCmd = &cobra.Command{
 			}
 		}
 		for key, value := range megamap {
+			if expand {
+				if stringValue, ok := value.(string); ok {
+					value = expandValue(stringValue)
+				}
+			}
 			os.Setenv(key, fmt.Sprintf("%v", value))
 		}
 
@@ -87,19 +92,25 @@ var runCmd = &cobra.Command{
 func expandArgs(args []string) []string {
 	var expanded []string
 	for _, arg := range args {
-		e, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("echo %s", arg)).Output()
-		// error is not expected.
-		// in the rare case that this errors
-		// the original arg is still used.
-		if err == nil {
-			arg = strings.TrimSpace(string(e))
-		}
+		arg = expandValue(arg)
 		expanded = append(expanded, arg)
 	}
 	return expanded
 }
 
+func expandValue(val string) string {
+	e, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("echo %s", val)).Output()
+	// error is not expected.
+	// in the rare case that this errors
+	// the original arg is still used.
+	if err == nil {
+		return strings.TrimSpace(string(e))
+	}
+	return val
+
+}
+
 func init() {
-	runCmd.Flags().BoolVarP(&expand, "expand", "e", false, "Expand arguments using /bin/sh")
+	runCmd.Flags().BoolVarP(&expand, "expand", "e", false, "Expand arguments and values using /bin/sh")
 	rootCmd.AddCommand(runCmd)
 }
