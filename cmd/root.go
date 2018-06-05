@@ -12,6 +12,7 @@ var (
 	names     []string
 	recursive bool
 	strict    bool
+	expand    bool
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -38,4 +39,5 @@ func init() {
 	rootCmd.PersistentFlags().StringArrayVarP(&names, "name", "n", []string{}, "Name of the SSM parameter to retrieve. Can be specified multiple times.")
 	rootCmd.PersistentFlags().BoolVarP(&recursive, "recursive", "r", false, "Walk through the provided SSM paths recursively.")
 	rootCmd.PersistentFlags().BoolVarP(&strict, "strict", "s", false, "Strict mode. Fail if found less parameters than number of names.")
+	rootCmd.PersistentFlags().BoolVarP(&expand, "expand", "e", false, "Expand arguments and values using /bin/sh")
 }

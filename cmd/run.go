@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"os/signal"
-	"strings"
 
 	"github.com/springload/ssm-parent/ssm"
 
@@ -13,8 +11,6 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
 )
-
-var expand bool
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -24,14 +20,8 @@ var runCmd = &cobra.Command{
 	Run: func(cobraCmd *cobra.Command, args []string) {
 		var cmdArgs []string
 
-		megamap := make(map[string]interface{})
-		localNames := names
-		localPaths := paths
-		if expand {
-			localNames = expandArgs(names)
-			localPaths = expandArgs(paths)
-		}
-		parameters, err := ssm.GetParameters(localNames, localPaths, strict, recursive)
+		megamap := make(map[string]string)
+		parameters, err := ssm.GetParameters(names, paths, expand, strict, recursive)
 		if err != nil {
 			log.WithError(err).Fatal("Can't get parameters")
 		}
@@ -43,11 +33,9 @@ var runCmd = &cobra.Command{
 		}
 		for key, value := range megamap {
 			if expand {
-				if stringValue, ok := value.(string); ok {
-					value = expandValue(stringValue)
-				}
+				value = ssm.ExpandValue(value)
 			}
-			os.Setenv(key, fmt.Sprintf("%v", value))
+			os.Setenv(key, value)
 		}
 
 		command, err := exec.LookPath(args[0])
@@ -59,7 +47,7 @@ var runCmd = &cobra.Command{
 		c := make(chan os.Signal, 1)
 		signal.Notify(c)
 		if expand {
-			cmdArgs = expandArgs(args[1:])
+			cmdArgs = ssm.ExpandArgs(args[1:])
 		} else {
 			cmdArgs = args[1:]
 		}
@@ -86,31 +74,6 @@ var runCmd = &cobra.Command{
 	},
 }
 
-// expandArgs leverages on shell and echo to expand
-// possible args mainly env vars.
-// taken from https://github.com/abiosoft/parent
-func expandArgs(args []string) []string {
-	var expanded []string
-	for _, arg := range args {
-		arg = expandValue(arg)
-		expanded = append(expanded, arg)
-	}
-	return expanded
-}
-
-func expandValue(val string) string {
-	e, err := exec.Command("/bin/sh", "-c", fmt.Sprintf("echo %s", val)).Output()
-	// error is not expected.
-	// in the rare case that this errors
-	// the original arg is still used.
-	if err == nil {
-		return strings.TrimSpace(string(e))
-	}
-	return val
-
-}
-
 func init() {
-	runCmd.Flags().BoolVarP(&expand, "expand", "e", false, "Expand arguments and values using /bin/sh")
 	rootCmd.AddCommand(runCmd)
 }

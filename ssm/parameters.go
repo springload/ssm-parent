@@ -30,7 +30,7 @@ func makeSession() error {
 	return nil
 }
 
-func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parameters []map[string]interface{}, err error) {
+func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parameters []map[string]string, err error) {
 	err = makeSession()
 	if err != nil {
 		log.WithError(err).Fatal("Can't create session") // fail early here
@@ -46,7 +46,7 @@ func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parame
 			err = multierror.Append(err, fmt.Errorf("Can't get parameters from path '%s': %s", path, innerErr))
 		}
 		for _, parameter := range response.Parameters {
-			value := make(map[string]interface{})
+			value := make(map[string]string)
 			innerErr := json.Unmarshal([]byte(*parameter.Value), &value)
 			if innerErr != nil {
 				err = multierror.Append(err, fmt.Errorf("Can't unmarshal json from '%s': %s", *parameter.Name, innerErr))
@@ -57,7 +57,7 @@ func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parame
 	return
 }
 
-func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]interface{}, err error) {
+func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]string, err error) {
 	err = makeSession()
 	if err != nil {
 		log.WithError(err).Fatal("Can't create session") // fail early here
@@ -83,7 +83,7 @@ func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]
 		}
 	}
 	for _, parameter := range response.Parameters {
-		value := make(map[string]interface{})
+		value := make(map[string]string)
 		innerErr := json.Unmarshal([]byte(*parameter.Value), &value)
 		if innerErr != nil {
 			err = multierror.Append(err, fmt.Errorf("Can't unmarshal json from '%s': %s", *parameter.Name, innerErr))
@@ -93,23 +93,29 @@ func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]
 	return
 }
 
-func GetParameters(names, paths []string, strict, recursive bool) (parameters []map[string]interface{}, err error) {
-	if len(names) > 0 {
-		parametersFromNames, err := getJsonSSMParameters(names, strict)
+func GetParameters(names, paths []string, expand, strict, recursive bool) (parameters []map[string]string, err error) {
+	localNames := names
+	localPaths := paths
+	if expand {
+		localNames = ExpandArgs(names)
+		localPaths = ExpandArgs(paths)
+	}
+	if len(localNames) > 0 {
+		parametersFromNames, err := getJsonSSMParameters(localNames, strict)
 		if err != nil {
 			log.WithError(err).WithFields(
-				log.Fields{"names": names},
+				log.Fields{"names": localNames},
 			).Fatal("Can't get parameters by names")
 		}
 		for _, parameter := range parametersFromNames {
 			parameters = append(parameters, parameter)
 		}
 	}
-	if len(paths) > 0 {
-		parametersFromPaths, err := getJsonSSMParametersByPaths(paths, strict, recursive)
+	if len(localPaths) > 0 {
+		parametersFromPaths, err := getJsonSSMParametersByPaths(localPaths, strict, recursive)
 		if err != nil {
 			log.WithError(err).WithFields(
-				log.Fields{"paths": paths},
+				log.Fields{"paths": localPaths},
 			).Fatal("Can't get parameters by paths")
 		}
 		for _, parameter := range parametersFromPaths {

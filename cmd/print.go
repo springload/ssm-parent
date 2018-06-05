@@ -16,8 +16,8 @@ var printCmd = &cobra.Command{
 	Short: "Prints the specified parameters.",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		megamap := make(map[string]interface{})
-		parameters, err := ssm.GetParameters(names, paths, strict, recursive)
+		megamap := make(map[string]string)
+		parameters, err := ssm.GetParameters(names, paths, expand, strict, recursive)
 		if err != nil {
 			log.WithError(err).Fatal("Can't get parameters")
 		}
@@ -25,6 +25,11 @@ var printCmd = &cobra.Command{
 			err = mergo.Merge(&megamap, &parameter, mergo.WithOverride)
 			if err != nil {
 				log.WithError(err).Fatal("Can't merge maps")
+			}
+		}
+		for key, value := range megamap {
+			if expand {
+				megamap[key] = ssm.ExpandValue(value)
 			}
 		}
 		marshalled, err := json.MarshalIndent(megamap, "", "  ")
