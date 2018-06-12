@@ -100,17 +100,6 @@ func GetParameters(names, paths []string, expand, strict, recursive bool) (param
 		localNames = ExpandArgs(names)
 		localPaths = ExpandArgs(paths)
 	}
-	if len(localNames) > 0 {
-		parametersFromNames, err := getJsonSSMParameters(localNames, strict)
-		if err != nil {
-			log.WithError(err).WithFields(
-				log.Fields{"names": localNames},
-			).Fatal("Can't get parameters by names")
-		}
-		for _, parameter := range parametersFromNames {
-			parameters = append(parameters, parameter)
-		}
-	}
 	if len(localPaths) > 0 {
 		parametersFromPaths, err := getJsonSSMParametersByPaths(localPaths, strict, recursive)
 		if err != nil {
@@ -119,6 +108,17 @@ func GetParameters(names, paths []string, expand, strict, recursive bool) (param
 			).Fatal("Can't get parameters by paths")
 		}
 		for _, parameter := range parametersFromPaths {
+			parameters = append(parameters, parameter)
+		}
+	}
+	if len(localNames) > 0 {
+		parametersFromNames, err := getJsonSSMParameters(localNames, strict)
+		if err != nil {
+			log.WithError(err).WithFields(
+				log.Fields{"names": localNames},
+			).Fatal("Can't get parameters by names")
+		}
+		for _, parameter := range parametersFromNames {
 			parameters = append(parameters, parameter)
 		}
 	}
