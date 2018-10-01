@@ -1,7 +1,7 @@
 SSM Parent
 ----------
 
-This is a parent process for Docker with one addition: it can read from AWS SSM Parameter store.
+This is mostly a parent process for Docker with one addition: it can read from AWS SSM Parameter store.
 
 The way it works is that ssm-parent can be used as an entrypoint for Docker. Firstly, it retrieves all specified parameters, then injects them to the environment,
 and finally runs the command.
@@ -45,7 +45,6 @@ The result will be merged as this:
 That should be pretty self-explanatory.
 
 ```
-$ssm-parent help                                                                                                         <aws:hosting>
 SSM-Parent is a docker entrypoint.
 
 It gets specified parameters (possibly secret) from AWS SSM Parameter Store,
@@ -55,11 +54,13 @@ Usage:
   ssm-parent [command]
 
 Available Commands:
+  dotenv      Writes dotenv file
   help        Help about any command
   print       Prints the specified parameters.
   run         Runs the specified command
 
 Flags:
+  -e, --expand             Expand arguments and values using shell-style syntax
   -h, --help               help for ssm-parent
   -n, --name stringArray   Name of the SSM parameter to retrieve. Can be specified multiple times.
   -p, --path stringArray   Path to a SSM parameter. Can be specified multiple times.
@@ -94,6 +95,16 @@ echo "Bootstrapping Caddy"
 envsubst < /etc/Caddyfile.env > /etc/Caddyfile
 
 exec $@
+```
+
+### .env file generation
+
+Sometimes you just want a .env file, and now it is also possible.
+
+Just specify all the same parameters, but use `dotenv` command instead with a filename to generate `.env` file.
+```
+./ssm-parent dotenv -r -p /project/environment dotenv.env
+2018/10/01 16:37:59  info Wrote the .env file       filename=dotenv.env
 ```
 
 ### How to build
