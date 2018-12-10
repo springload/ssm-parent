@@ -17,7 +17,7 @@ var printCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		megamap := make(map[string]string)
-		parameters, err := ssm.GetParameters(names, paths, expand, strict, recursive)
+		parameters, err := ssm.GetParameters(names, paths, plainNames, plainPaths, expand, strict, recursive)
 		if err != nil {
 			log.WithError(err).Fatal("Can't get parameters")
 		}
