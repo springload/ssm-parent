@@ -14,7 +14,7 @@ All parameters must be in JSON format, i.e.:
     }
 ```
 
-If a few parameters are specified, all JSON entities will be read and merged into one, overriding existing keys, i.e.
+If several parameters are specified, all JSON entities will be read and merged into one, overriding existing keys, i.e.
 
 Parameter one:
 ```
@@ -39,6 +39,10 @@ The result will be merged as this:
     }
 ```
 
+One can also specify `--plain-name` and `--plain-path` command line options to read _plain_ parameters that are not in JSON format.
+`ssm-parent` takes the value as is, and constructs a key name from the `basename parameter`,
+ i.e. a SSM Parameter `/project/environment/myParameter` with value `supervalue` will be exported as `myParameter=supervalue`.
+
 ### How to use
 
 
@@ -48,7 +52,10 @@ That should be pretty self-explanatory.
 SSM-Parent is a docker entrypoint.
 
 It gets specified parameters (possibly secret) from AWS SSM Parameter Store,
-then exports them to the underlying process.
+then exports them to the underlying process. Or creates a .env file to be consumed by an application.
+
+It reads parameters in the following order: path->name->plain-path->plain-name.
+So that every rightmost parameter overrides the previous one.
 
 Usage:
   ssm-parent [command]
@@ -60,12 +67,15 @@ Available Commands:
   run         Runs the specified command
 
 Flags:
-  -e, --expand             Expand arguments and values using shell-style syntax
-  -h, --help               help for ssm-parent
-  -n, --name stringArray   Name of the SSM parameter to retrieve. Can be specified multiple times.
-  -p, --path stringArray   Path to a SSM parameter. Can be specified multiple times.
-  -r, --recursive          Walk through the provided SSM paths recursively.
-  -s, --strict             Strict mode. Fail if found less parameters than number of names.
+  -e, --expand                   Expand arguments and values using shell-style syntax
+  -h, --help                     help for ssm-parent
+  -n, --name stringArray         Name of the SSM parameter to retrieve. Expects JSON in the value. Can be specified multiple times.
+  -p, --path stringArray         Path to a SSM parameter. Expects JSON in the value. Can be specified multiple times.
+      --plain-name stringArray   Name of the SSM parameter to retrieve. Expects actual parameter in the value. Can be specified multiple times.
+      --plain-path stringArray   Path to a SSM parameter. Expects actual parameter in the value. Can be specified multiple times.
+  -r, --recursive                Walk through the provided SSM paths recursively.
+  -s, --strict                   Strict mode. Fail if found less parameters than number of names.
+      --version                  version for ssm-parent
 
 Use "ssm-parent [command] --help" for more information about a command.
 ```

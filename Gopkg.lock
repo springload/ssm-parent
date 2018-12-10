@@ -2,12 +2,15 @@
 
 
 [[projects]]
+  digest = "1:40261f597e43f31aaf9f8658b85c082773217943056f1be137635e769c0798c9"
   name = "github.com/apex/log"
   packages = ["."]
+  pruneopts = "UT"
   revision = "0296d6eb16bb28f8a0c55668affcf4876dc269be"
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:d77b89a7b72b33e5a3b0ac2334484a06bafba55df4bfc24cea325962f3254819"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -37,79 +40,112 @@
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
     "service/ssm",
-    "service/sts"
+    "service/sts",
   ]
+  pruneopts = "UT"
   revision = "9b0098a71f6d4d473a26ec8ad3c2feaac6eb1da6"
   version = "v1.13.32"
 
 [[projects]]
   branch = "master"
+  digest = "1:f7b937d8308793c2ceb87ab884f3ae5092d7ed78889147667de86b871de2ebcc"
   name = "github.com/buildkite/interpolate"
   packages = ["."]
+  pruneopts = "UT"
   revision = "c1c376f870d259871fcc9bf3bcfd4889b999ed1a"
 
 [[projects]]
+  digest = "1:ad12727c184fc7e33768f5fe239d8f767a3b60264541067ac2f23b9aca013e06"
   name = "github.com/go-ini/ini"
   packages = ["."]
+  pruneopts = "UT"
   revision = "ace140f73450505f33e8b8418216792275ae82a7"
   version = "v1.35.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:07671f8997086ed115824d1974507d2b147d1e0463675ea5dbf3be89b1c2c563"
   name = "github.com/hashicorp/errwrap"
   packages = ["."]
+  pruneopts = "UT"
   revision = "7554cd9344cec97297fa6649b055a8c98c2a1e55"
 
 [[projects]]
   branch = "master"
+  digest = "1:e5048c5da80697be2fcdecc944e29d2999e01fd7f48b643168443209779f3463"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
+  pruneopts = "UT"
   revision = "b7773ae218740a7be65057fc60b366a49b538a44"
 
 [[projects]]
+  digest = "1:b39dba8363bf11da3cddcc31c5a9c39f17fba8a5317ae0836ea4530bae3b4866"
   name = "github.com/imdario/mergo"
   packages = ["."]
+  pruneopts = "UT"
   revision = "9d5f1277e9a8ed20c3684bda8fde67c05628518c"
   version = "v0.3.4"
 
 [[projects]]
+  digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
+  pruneopts = "UT"
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
 
 [[projects]]
+  digest = "1:e22af8c7518e1eab6f2eab2b7d7558927f816262586cd6ed9f349c97a6c285c4"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
+  pruneopts = "UT"
   revision = "0b12d6b5"
 
 [[projects]]
+  digest = "1:ecd9aa82687cf31d1585d4ac61d0ba180e42e8a6182b85bd785fcca8dfeefc1b"
   name = "github.com/joho/godotenv"
   packages = ["."]
+  pruneopts = "UT"
   revision = "23d116af351c84513e1946b527c88823e476be13"
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = "UT"
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:982714fa3eaafd4251f5ccf3d133b706ad742b86c195d594e1a86050a02f87a8"
   name = "github.com/spf13/cobra"
   packages = ["."]
+  pruneopts = "UT"
   revision = "a1f051bc3eba734da4772d60e2d677f47cf93ef4"
   version = "v0.0.2"
 
 [[projects]]
+  digest = "1:9424f440bba8f7508b69414634aef3b2b3a877e522d8a4624692412805407bb7"
   name = "github.com/spf13/pflag"
   packages = ["."]
+  pruneopts = "UT"
   revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
   version = "v1.0.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7cefb712d6c13a4e630e4c69a83a4caaa0526b6dcd02db7f0007edc71e82cba2"
+  input-imports = [
+    "github.com/apex/log",
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/ssm",
+    "github.com/buildkite/interpolate",
+    "github.com/hashicorp/go-multierror",
+    "github.com/imdario/mergo",
+    "github.com/joho/godotenv",
+    "github.com/spf13/cobra",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
