@@ -31,6 +31,18 @@ func makeSession() error {
 	return nil
 }
 
+func collectJsonParameters(responseParameters []*ssm.Parameter) (parameters []map[string]string, errors []error) {
+	for _, parameter := range responseParameters {
+		value := make(map[string]string)
+		if innerErr := json.Unmarshal([]byte(aws.StringValue(parameter.Value)), &value); innerErr != nil {
+			errors = append(errors, fmt.Errorf("Can't unmarshal json from '%s': %s", aws.StringValue(parameter.Name), innerErr))
+		} else {
+			parameters = append(parameters, value)
+		}
+	}
+	return
+}
+
 func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parameters []map[string]string, err error) {
 	err = makeSession()
 	if err != nil {
@@ -38,47 +50,25 @@ func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parame
 	}
 	s := ssm.New(localSession)
 	for _, path := range paths {
-		response, innerErr := s.GetParametersByPath(&ssm.GetParametersByPathInput{
+		innerErr := s.GetParametersByPathPages(&ssm.GetParametersByPathInput{
 			Path:           aws.String(path),
 			WithDecryption: aws.Bool(true),
 			Recursive:      aws.Bool(recursive),
-		})
-		if innerErr != nil {
-			err = multierror.Append(err, fmt.Errorf("Can't get parameters from path '%s': %s", path, innerErr))
-		}
-		for _, parameter := range response.Parameters {
-			value := make(map[string]string)
-			innerErr := json.Unmarshal([]byte(*parameter.Value), &value)
-			if innerErr != nil {
-				err = multierror.Append(err, fmt.Errorf("Can't unmarshal json from '%s': %s", *parameter.Name, innerErr))
+		}, func(response *ssm.GetParametersByPathOutput, last bool) bool {
+			innerParameters, errs := collectJsonParameters(response.Parameters)
+			for _, parseErr := range errs {
+				err = multierror.Append(err, parseErr)
 			}
-			parameters = append(parameters, value)
-		}
-	}
-	return
-}
+			parameters = append(parameters, innerParameters...)
 
-func getPlainSSMParametersByPaths(paths []string, strict, recursive bool) (parameters []map[string]string, err error) {
-	err = makeSession()
-	if err != nil {
-		log.WithError(err).Fatal("Can't create session") // fail early here
-	}
-	s := ssm.New(localSession)
-	for _, path := range paths {
-		response, innerErr := s.GetParametersByPath(&ssm.GetParametersByPathInput{
-			Path:           aws.String(path),
-			WithDecryption: aws.Bool(true),
-			Recursive:      aws.Bool(recursive),
-		})
+			return false
+		},
+		)
 		if innerErr != nil {
 			err = multierror.Append(err, fmt.Errorf("Can't get parameters from path '%s': %s", path, innerErr))
 		}
-		for _, parameter := range response.Parameters {
-			values := make(map[string]string)
-			values[goPath.Base(aws.StringValue(parameter.Name))] = aws.StringValue(parameter.Value)
-			parameters = append(parameters, values)
-		}
 	}
+
 	return
 }
 
@@ -101,19 +91,53 @@ func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]
 		} else {
 			var found []string
 			for _, f := range response.Parameters {
-				found = append(found, *f.Name)
+				found = append(found, aws.StringValue(f.Name))
 			}
 			diff := stringSliceDifference(names, found)
 			log.WithFields(log.Fields{"missing_names": diff}).Warn("Some parameters have not been found")
 		}
 	}
-	for _, parameter := range response.Parameters {
-		value := make(map[string]string)
-		innerErr := json.Unmarshal([]byte(*parameter.Value), &value)
+	innerParameters, errs := collectJsonParameters(response.Parameters)
+	for _, parseErr := range errs {
+		err = multierror.Append(err, parseErr)
+	}
+	parameters = append(parameters, innerParameters...)
+	return
+}
+
+func collectPlainParameters(responseParameters []*ssm.Parameter) (parameters []map[string]string, errors []error) {
+	for _, parameter := range responseParameters {
+		values := make(map[string]string)
+		values[goPath.Base(aws.StringValue(parameter.Name))] = aws.StringValue(parameter.Value)
+		parameters = append(parameters, values)
+	}
+	return
+}
+
+func getPlainSSMParametersByPaths(paths []string, strict, recursive bool) (parameters []map[string]string, err error) {
+	err = makeSession()
+	if err != nil {
+		log.WithError(err).Fatal("Can't create session") // fail early here
+	}
+	s := ssm.New(localSession)
+	for _, path := range paths {
+		innerErr := s.GetParametersByPathPages(&ssm.GetParametersByPathInput{
+			Path:           aws.String(path),
+			WithDecryption: aws.Bool(true),
+			Recursive:      aws.Bool(recursive),
+		}, func(response *ssm.GetParametersByPathOutput, last bool) bool {
+			innerParameters, errs := collectPlainParameters(response.Parameters)
+			for _, parseErr := range errs {
+				err = multierror.Append(err, parseErr)
+			}
+			parameters = append(parameters, innerParameters...)
+
+			return false
+		},
+		)
 		if innerErr != nil {
-			err = multierror.Append(err, fmt.Errorf("Can't unmarshal json from '%s': %s", *parameter.Name, innerErr))
+			err = multierror.Append(err, fmt.Errorf("Can't get parameters from path '%s': %s", path, innerErr))
 		}
-		parameters = append(parameters, value)
 	}
 	return
 }
@@ -137,17 +161,17 @@ func getPlainSSMParameters(names []string, strict bool) (parameters []map[string
 		} else {
 			var found []string
 			for _, f := range response.Parameters {
-				found = append(found, *f.Name)
+				found = append(found, aws.StringValue(f.Name))
 			}
 			diff := stringSliceDifference(names, found)
 			log.WithFields(log.Fields{"missing_names": diff}).Warn("Some parameters have not been found")
 		}
 	}
-	for _, parameter := range response.Parameters {
-		values := make(map[string]string)
-		values[goPath.Base(aws.StringValue(parameter.Name))] = aws.StringValue(parameter.Value)
-		parameters = append(parameters, values)
+	innerParameters, errs := collectPlainParameters(response.Parameters)
+	for _, parseErr := range errs {
+		err = multierror.Append(err, parseErr)
 	}
+	parameters = append(parameters, innerParameters...)
 	return
 }
 
@@ -201,7 +225,7 @@ func GetParameters(names, paths, plainNames, plainPaths []string, expand, strict
 		parametersFromPlainNames, err := getPlainSSMParameters(localPlainNames, strict)
 		if err != nil {
 			log.WithError(err).WithFields(
-				log.Fields{"plain_names": localNames},
+				log.Fields{"plain_names": localPlainNames},
 			).Fatal("Can't get plain parameters by names")
 		}
 		for _, parameter := range parametersFromPlainNames {
