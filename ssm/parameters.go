@@ -61,7 +61,7 @@ func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parame
 			}
 			parameters = append(parameters, innerParameters...)
 
-			return false
+			return true
 		},
 		)
 		if innerErr != nil {
@@ -132,7 +132,7 @@ func getPlainSSMParametersByPaths(paths []string, strict, recursive bool) (param
 			}
 			parameters = append(parameters, innerParameters...)
 
-			return false
+			return true
 		},
 		)
 		if innerErr != nil {
