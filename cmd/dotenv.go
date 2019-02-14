@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/apex/log"
 	"github.com/imdario/mergo"
 	"github.com/joho/godotenv"
@@ -32,12 +34,22 @@ var dotenvCmd = &cobra.Command{
 			}
 		}
 
-		err = godotenv.Write(megamap, args[0])
+		// we don't want to use godotenv as it creates files with too open permissions
+		content, err := godotenv.Marshal(megamap)
+		if err != nil {
+			log.WithError(err).Fatal("Can't marshal the env to a string")
+		}
+
+		file, err := os.OpenFile(args[0], os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			log.WithError(err).Fatal("Can't create the file")
+		}
+
+		_, err = file.WriteString(content)
 		if err != nil {
 			log.WithError(err).Fatal("Can't write the dotenv file")
 		} else {
 			log.WithFields(log.Fields{"filename": args[0]}).Info("Wrote the .env file")
-
 		}
 	},
 }
