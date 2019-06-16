@@ -31,6 +31,7 @@ So that every rightmost parameter overrides the previous one.
 `,
 }
 
+// Execute is the entrypoint for cmd/ module
 func Execute(version string) {
 	rootCmd.Version = version
 	if err := rootCmd.Execute(); err != nil {

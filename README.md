@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/springload/ssm-parent)](https://goreportcard.com/report/github.com/springload/ssm-parent)
+
 SSM Parent
 ----------
 

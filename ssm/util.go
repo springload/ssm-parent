@@ -25,6 +25,7 @@ func stringSliceDifference(a, b []string) []string {
 	return ab
 }
 
+// ExpandArgs expands arguments using env vars
 func ExpandArgs(args []string) []string {
 	var expanded []string
 	for _, arg := range args {
@@ -33,6 +34,8 @@ func ExpandArgs(args []string) []string {
 	}
 	return expanded
 }
+
+// ExpandValue interpolates values using env vars
 func ExpandValue(val string) string {
 	e, err := interpolate.Interpolate(env, val)
 	if err == nil {
@@ -42,9 +45,10 @@ func ExpandValue(val string) string {
 
 }
 
-// just adapt os.LookupEnv to this interface
+// Env just adapts os.LookupEnv to this interface
 type Env struct{}
 
+// Get gets env var by the provided key
 func (e Env) Get(key string) (string, bool) {
 	return os.LookupEnv(key)
 }

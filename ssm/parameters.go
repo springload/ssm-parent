@@ -25,7 +25,7 @@ func makeSession() error {
 			Profile:           "",
 		})
 		if err != nil {
-			return fmt.Errorf("Can't get aws session.")
+			return fmt.Errorf("can't get aws session")
 		}
 	}
 	return nil
@@ -175,6 +175,7 @@ func getPlainSSMParameters(names []string, strict bool) (parameters []map[string
 	return
 }
 
+// GetParameters returns all parameters by path/names, with optional env vars expansion
 func GetParameters(names, paths, plainNames, plainPaths []string, expand, strict, recursive bool) (parameters []map[string]string, err error) {
 	localNames := names
 	localPaths := paths
