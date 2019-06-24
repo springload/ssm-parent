@@ -91,9 +91,26 @@ ENV PROJECT myproject
 ENV ENVIRONMENT production
 
 RUN wget -O /tmp/ssm-parent.tar.gz https://github.com/springload/ssm-parent/releases/download/v0.9/ssm-parent_0.9_linux_amd64.tar.gz && \
-    tar xvf /tmp/ssm-parent.tar.gz && mv ssm-parent /sbin/ssm-parent && rm /tmp/ssm-parent.tar.gz
+    tar xvf /tmp/ssm-parent.tar.gz && mv ssm-parent /usr/bin/ssm-parent && rm /tmp/ssm-parent.tar.gz
 
-ENTRYPOINT ["/sbin/ssm-parent", "run", "-e", "-p", "/$PROJECT/$ENVIRONMENT/backend/", "-r",  "--"]
+ENTRYPOINT ["/usr/bin/ssm-parent", "run", "-e", "-p", "/$PROJECT/$ENVIRONMENT/backend/", "-r",  "--"]
+CMD ["caddy" , "--conf", "/etc/Caddyfile", "--log", "stdout"]
+```
+
+### Use as a Docker stage
+
+```
+# get the ssm-parent as a stage
+FROM springload/ssm-parent as ssm-parent
+
+# your main stage
+FROM alpine
+ENV PROJECT myproject
+ENV ENVIRONMENT production
+
+COPY --from=ssm-parent /usr/bin/ssm-parent /usr/bin/ssm-parent
+
+ENTRYPOINT ["/usr/bin/ssm-parent", "run", "-e", "-p", "/$PROJECT/$ENVIRONMENT/backend/", "-r",  "--"]
 CMD ["caddy" , "--conf", "/etc/Caddyfile", "--log", "stdout"]
 ```
 
