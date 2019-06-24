@@ -121,11 +121,10 @@ Just specify all the same parameters, but use `dotenv` command instead with a fi
 
 ### How to build
 
-This project uses https://github.com/golang/dep as a dependency manager. Go v.1.10.1 was used.
+This project uses `go mod` as a dependency manager. Go v.1.12 was used.
 
 ```
     $git clone https://github.com/springload/ssm-parent.git
-    $cd ssm-parent && dep ensure
     $go build
     # (after some hacking)
     $git tag vXXX && git push && git push --tags
