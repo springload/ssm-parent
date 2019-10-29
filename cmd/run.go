@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"syscall"
 
 	"github.com/springload/ssm-parent/ssm"
 
@@ -43,33 +44,17 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			ctx.WithError(err).Fatal("Cant find the command")
 		}
+		cmdArgs = append(cmdArgs, args[:1]...)
 
 		c := make(chan os.Signal, 1)
 		signal.Notify(c)
 		if expand {
-			cmdArgs = ssm.ExpandArgs(args[1:])
+			cmdArgs = append(cmdArgs, ssm.ExpandArgs(args[1:])...)
 		} else {
-			cmdArgs = args[1:]
+			cmdArgs = append(cmdArgs, args[1:]...)
 		}
-
-		cmd := exec.Command(command, cmdArgs...)
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Env = os.Environ()
-
-		if err := cmd.Start(); err != nil {
+		if err := syscall.Exec(command, cmdArgs, os.Environ()); err != nil {
 			ctx.WithError(err).Fatal("Can't run the command")
-		}
-
-		go func() {
-			for sig := range c {
-				cmd.Process.Signal(sig)
-			}
-		}()
-
-		if err := cmd.Wait(); err != nil {
-			ctx.WithError(err).Fatal("The command exited with an error")
 		}
 	},
 }

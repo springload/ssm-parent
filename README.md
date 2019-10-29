@@ -5,8 +5,10 @@ SSM Parent
 
 This is mostly a parent process for Docker with one addition: it can read from AWS SSM Parameter store.
 
+Please note, that it still requires a proper `init` process, for example the one embedded into Docker can be used with `docker run --init`.
+
 The way it works is that ssm-parent can be used as an entrypoint for Docker. Firstly, it retrieves all specified parameters, then injects them to the environment,
-and finally runs the command.
+and finally runs the command using `execve` syscall.
 
 All parameters must be in JSON format, i.e.:
 
