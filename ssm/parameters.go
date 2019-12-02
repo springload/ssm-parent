@@ -10,6 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	multierror "github.com/hashicorp/go-multierror"
+	"github.com/imdario/mergo"
+
+	"github.com/springload/ssm-parent/ssm/transformations"
 )
 
 var localSession *session.Session
@@ -176,45 +179,34 @@ func getPlainSSMParameters(names []string, strict bool) (parameters []map[string
 }
 
 // GetParameters returns all parameters by path/names, with optional env vars expansion
-func GetParameters(names, paths, plainNames, plainPaths []string, expand, strict, recursive bool) (parameters []map[string]string, err error) {
-	localNames := names
-	localPaths := paths
-	localPlainNames := plainNames
-	localPlainPaths := plainPaths
-	if expand {
-		localNames = ExpandArgs(names)
-		localPaths = ExpandArgs(paths)
-		localPlainNames = ExpandArgs(plainNames)
-		localPlainPaths = ExpandArgs(plainPaths)
-	}
-
-	if len(localPaths) > 0 {
-		parametersFromPaths, err := getJsonSSMParametersByPaths(localPaths, strict, recursive)
+func getAllParameters(names, paths, plainNames, plainPaths []string, strict, recursive bool) (parameters []map[string]string, err error) {
+	if len(paths) > 0 {
+		parametersFromPaths, err := getJsonSSMParametersByPaths(paths, strict, recursive)
 		if err != nil {
 			log.WithError(err).WithFields(
-				log.Fields{"paths": localPaths},
+				log.Fields{"paths": paths},
 			).Fatal("Can't get parameters by paths")
 		}
 		for _, parameter := range parametersFromPaths {
 			parameters = append(parameters, parameter)
 		}
 	}
-	if len(localNames) > 0 {
-		parametersFromNames, err := getJsonSSMParameters(localNames, strict)
+	if len(names) > 0 {
+		parametersFromNames, err := getJsonSSMParameters(names, strict)
 		if err != nil {
 			log.WithError(err).WithFields(
-				log.Fields{"names": localNames},
+				log.Fields{"names": names},
 			).Fatal("Can't get parameters by names")
 		}
 		for _, parameter := range parametersFromNames {
 			parameters = append(parameters, parameter)
 		}
 	}
-	if len(localPlainPaths) > 0 {
-		parametersFromPlainPaths, err := getPlainSSMParametersByPaths(localPlainPaths, strict, recursive)
+	if len(plainPaths) > 0 {
+		parametersFromPlainPaths, err := getPlainSSMParametersByPaths(plainPaths, strict, recursive)
 		if err != nil {
 			log.WithError(err).WithFields(
-				log.Fields{"plain_paths": localPaths},
+				log.Fields{"plain_paths": plainPaths},
 			).Fatal("Can't get plain parameters by paths")
 		}
 		for _, parameter := range parametersFromPlainPaths {
@@ -222,15 +214,54 @@ func GetParameters(names, paths, plainNames, plainPaths []string, expand, strict
 		}
 	}
 
-	if len(localPlainNames) > 0 {
-		parametersFromPlainNames, err := getPlainSSMParameters(localPlainNames, strict)
+	if len(plainNames) > 0 {
+		parametersFromPlainNames, err := getPlainSSMParameters(plainNames, strict)
 		if err != nil {
 			log.WithError(err).WithFields(
-				log.Fields{"plain_names": localPlainNames},
+				log.Fields{"plain_names": plainNames},
 			).Fatal("Can't get plain parameters by names")
 		}
 		for _, parameter := range parametersFromPlainNames {
 			parameters = append(parameters, parameter)
+		}
+	}
+
+	return
+}
+
+// GetParameters returns all parameters by path/names, with optional env vars expansion
+func GetParameters(names, paths, plainNames, plainPaths []string, transformationsList []transformations.Transformation, expand, strict, recursive bool) (parameters map[string]string, err error) {
+	localNames := names
+	localPaths := paths
+	localPlainNames := plainNames
+	localPlainPaths := plainPaths
+
+	if expand {
+		localNames = ExpandArgs(names)
+		localPaths = ExpandArgs(paths)
+		localPlainNames = ExpandArgs(plainNames)
+		localPlainPaths = ExpandArgs(plainPaths)
+	}
+	allParameters, err := getAllParameters(localNames, localPaths, localPlainNames, localPlainPaths, strict, recursive)
+	if err != nil {
+		return parameters, err
+	}
+	parameters = make(map[string]string)
+	for _, parameter := range allParameters {
+		err = mergo.Merge(&parameters, &parameter, mergo.WithOverride)
+		if err != nil {
+			log.WithError(err).Fatal("Can't merge maps")
+		}
+	}
+	for key, value := range parameters {
+		if expand {
+			parameters[key] = ExpandValue(value)
+		}
+	}
+	for _, transformation := range transformationsList {
+		parameters, err = transformation.Transform(parameters)
+		if err != nil {
+			log.WithError(err).Fatal("can't transform parameter")
 		}
 	}
 	return

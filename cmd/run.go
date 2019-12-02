@@ -9,8 +9,8 @@ import (
 	"github.com/springload/ssm-parent/ssm"
 
 	"github.com/apex/log"
-	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // runCmd represents the run command
@@ -21,21 +21,20 @@ var runCmd = &cobra.Command{
 	Run: func(cobraCmd *cobra.Command, args []string) {
 		var cmdArgs []string
 
-		megamap := make(map[string]string)
-		parameters, err := ssm.GetParameters(names, paths, plainNames, plainPaths, expand, strict, recursive)
+		parameters, err := ssm.GetParameters(
+			viper.GetStringSlice("names"),
+			viper.GetStringSlice("paths"),
+			viper.GetStringSlice("plainNames"),
+			viper.GetStringSlice("plainPaths"),
+			transformationsList,
+			viper.GetBool("expand"),
+			viper.GetBool("strict"),
+			viper.GetBool("recursive"),
+		)
 		if err != nil {
 			log.WithError(err).Fatal("Can't get parameters")
 		}
-		for _, parameter := range parameters {
-			err = mergo.Merge(&megamap, &parameter, mergo.WithOverride)
-			if err != nil {
-				log.WithError(err).Fatal("Can't merge maps")
-			}
-		}
-		for key, value := range megamap {
-			if expand {
-				value = ssm.ExpandValue(value)
-			}
+		for key, value := range parameters {
 			os.Setenv(key, value)
 		}
 

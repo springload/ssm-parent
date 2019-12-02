@@ -6,8 +6,8 @@ import (
 	"github.com/springload/ssm-parent/ssm"
 
 	"github.com/apex/log"
-	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // printCmd represents the print command
@@ -15,24 +15,20 @@ var printCmd = &cobra.Command{
 	Use:   "print",
 	Short: "Prints the specified parameters.",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		megamap := make(map[string]string)
-		parameters, err := ssm.GetParameters(names, paths, plainNames, plainPaths, expand, strict, recursive)
+		parameters, err := ssm.GetParameters(
+			viper.GetStringSlice("names"),
+			viper.GetStringSlice("paths"),
+			viper.GetStringSlice("plainNames"),
+			viper.GetStringSlice("plainPaths"),
+			transformationsList,
+			viper.GetBool("expand"),
+			viper.GetBool("strict"),
+			viper.GetBool("recursive"),
+		)
 		if err != nil {
-			log.WithError(err).Fatal("Can't get parameters")
+			log.WithError(err).Fatal("Can't marshal json")
 		}
-		for _, parameter := range parameters {
-			err = mergo.Merge(&megamap, &parameter, mergo.WithOverride)
-			if err != nil {
-				log.WithError(err).Fatal("Can't merge maps")
-			}
-		}
-		for key, value := range megamap {
-			if expand {
-				megamap[key] = ssm.ExpandValue(value)
-			}
-		}
-		marshalled, err := json.MarshalIndent(megamap, "", "  ")
+		marshalled, err := json.MarshalIndent(parameters, "", "  ")
 		if err != nil {
 			log.WithError(err).Fatal("Can't marshal json")
 		}
