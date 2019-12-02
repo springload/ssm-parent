@@ -13,6 +13,7 @@ var funcMap = template.FuncMap{
 	"url_scheme":   URLScheme,
 	"url_user":     URLUser,
 	"trim_prefix":  strings.TrimPrefix,
+	"replace":      strings.Replace,
 }
 
 // URLUser extracts user from the URL or returns "" if it's not set
