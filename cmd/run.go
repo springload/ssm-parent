@@ -24,8 +24,8 @@ var runCmd = &cobra.Command{
 		parameters, err := ssm.GetParameters(
 			viper.GetStringSlice("names"),
 			viper.GetStringSlice("paths"),
-			viper.GetStringSlice("plainNames"),
-			viper.GetStringSlice("plainPaths"),
+			viper.GetStringSlice("plain-names"),
+			viper.GetStringSlice("plain-paths"),
 			transformationsList,
 			viper.GetBool("expand"),
 			viper.GetBool("strict"),
@@ -47,7 +47,7 @@ var runCmd = &cobra.Command{
 
 		c := make(chan os.Signal, 1)
 		signal.Notify(c)
-		if expand {
+		if viper.GetBool("expand") {
 			cmdArgs = append(cmdArgs, ssm.ExpandArgs(args[1:])...)
 		} else {
 			cmdArgs = append(cmdArgs, args[1:]...)

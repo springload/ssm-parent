@@ -21,8 +21,8 @@ var dotenvCmd = &cobra.Command{
 		parameters, err := ssm.GetParameters(
 			viper.GetStringSlice("names"),
 			viper.GetStringSlice("paths"),
-			viper.GetStringSlice("plainNames"),
-			viper.GetStringSlice("plainPaths"),
+			viper.GetStringSlice("plain-names"),
+			viper.GetStringSlice("plain-paths"),
 			transformationsList,
 			viper.GetBool("expand"),
 			viper.GetBool("strict"),

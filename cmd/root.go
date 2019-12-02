@@ -13,14 +13,6 @@ import (
 
 var (
 	config              string
-	debug               bool
-	paths               []string
-	names               []string
-	plainPaths          []string
-	plainNames          []string
-	recursive           bool
-	strict              bool
-	expand              bool
 	transformationsList []transformations.Transformation
 )
 
@@ -103,7 +95,6 @@ func initSettings() {
 		}
 	}
 
-	//	}
 	if viper.GetBool("debug") {
 		log.SetLevel(log.DebugLevel)
 	}
@@ -111,21 +102,21 @@ func initSettings() {
 func init() {
 	cobra.OnInitialize(initSettings)
 	rootCmd.PersistentFlags().StringVarP(&config, "config", "c", "", "Path to the config file (optional). Allows to set transformations")
-	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Turn on debug logging")
-	rootCmd.PersistentFlags().BoolVarP(&expand, "expand", "e", false, "Expand arguments and values using shell-style syntax")
-	rootCmd.PersistentFlags().StringArrayVarP(&paths, "path", "p", []string{}, "Path to a SSM parameter. Expects JSON in the value. Can be specified multiple times.")
-	rootCmd.PersistentFlags().StringArrayVarP(&names, "name", "n", []string{}, "Name of the SSM parameter to retrieve. Expects JSON in the value. Can be specified multiple times.")
-	rootCmd.PersistentFlags().StringArrayVarP(&plainPaths, "plain-path", "", []string{}, "Path to a SSM parameter. Expects actual parameter in the value. Can be specified multiple times.")
-	rootCmd.PersistentFlags().StringArrayVarP(&plainNames, "plain-name", "", []string{}, "Name of the SSM parameter to retrieve. Expects actual parameter in the value. Can be specified multiple times.")
-	rootCmd.PersistentFlags().BoolVarP(&recursive, "recursive", "r", false, "Walk through the provided SSM paths recursively.")
-	rootCmd.PersistentFlags().BoolVarP(&strict, "strict", "s", false, "Strict mode. Fail if found less parameters than number of names.")
+	rootCmd.PersistentFlags().BoolP("debug", "d", false, "Turn on debug logging")
+	rootCmd.PersistentFlags().BoolP("expand", "e", false, "Expand arguments and values using shell-style syntax")
+	rootCmd.PersistentFlags().StringSliceP("path", "p", []string{}, "Path to a SSM parameter. Expects JSON in the value. Can be specified multiple times.")
+	rootCmd.PersistentFlags().StringSliceP("name", "n", []string{}, "Name of the SSM parameter to retrieve. Expects JSON in the value. Can be specified multiple times.")
+	rootCmd.PersistentFlags().StringSliceP("plain-path", "", []string{}, "Path to a SSM parameter. Expects actual parameter in the value. Can be specified multiple times.")
+	rootCmd.PersistentFlags().StringSliceP("plain-name", "", []string{}, "Name of the SSM parameter to retrieve. Expects actual parameter in the value. Can be specified multiple times.")
+	rootCmd.PersistentFlags().BoolP("recursive", "r", false, "Walk through the provided SSM paths recursively.")
+	rootCmd.PersistentFlags().BoolP("strict", "s", false, "Strict mode. Fail if found less parameters than number of names.")
 
 	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 	viper.BindPFlag("expand", rootCmd.PersistentFlags().Lookup("expand"))
-	viper.BindPFlag("path", rootCmd.PersistentFlags().Lookup("path"))
-	viper.BindPFlag("name", rootCmd.PersistentFlags().Lookup("name"))
-	viper.BindPFlag("plain-path", rootCmd.PersistentFlags().Lookup("plain-path"))
-	viper.BindPFlag("plain-name", rootCmd.PersistentFlags().Lookup("plain-name"))
+	viper.BindPFlag("paths", rootCmd.PersistentFlags().Lookup("path"))
+	viper.BindPFlag("names", rootCmd.PersistentFlags().Lookup("name"))
+	viper.BindPFlag("plain-paths", rootCmd.PersistentFlags().Lookup("plain-path"))
+	viper.BindPFlag("plain-names", rootCmd.PersistentFlags().Lookup("plain-name"))
 	viper.BindPFlag("recursive", rootCmd.PersistentFlags().Lookup("recursive"))
 	viper.BindPFlag("strict", rootCmd.PersistentFlags().Lookup("strict"))
 }
