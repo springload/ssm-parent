@@ -1,12 +1,15 @@
 package transformations
 
 import (
+	"fmt"
 	"net/url"
+	"os"
 	"strings"
 	"text/template"
 )
 
 var funcMap = template.FuncMap{
+	"env":          GetEnv,
 	"url_host":     URLHost,
 	"url_password": URLPassword,
 	"url_path":     URLPath,
@@ -14,6 +17,15 @@ var funcMap = template.FuncMap{
 	"url_user":     URLUser,
 	"trim_prefix":  strings.TrimPrefix,
 	"replace":      strings.Replace,
+}
+
+// GetEnv gets the environment variable
+func GetEnv(input string) (string, error) {
+	val, ok := os.LookupEnv(input)
+	if !ok {
+		return "", fmt.Errorf("can't find %s in the environment variables", input)
+	}
+	return val, nil
 }
 
 // URLUser extracts user from the URL or returns "" if it's not set
