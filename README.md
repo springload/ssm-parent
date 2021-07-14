@@ -95,7 +95,7 @@ The supported transformations are:
 3. template - templates env vars
 
 Rename and template transormations expect a dictionary rule. The delete transormation expects an array.
-Template transformation uses (Go templates)[https://golang.org/pkg/text/template/], and the environment variables map is passed as `.`.
+Template transformation uses [Go templates](https://golang.org/pkg/text/template/), and the environment variables map is passed as `.`.
 
 There are the following extra functions available in templates: url_host, url_user, url_password, url_path, url_scheme and trim_prefix. The current list of the custom functions can be found here https://github.com/springload/ssm-parent/blob/master/ssm/transformations/template_funcs.go#L9
 
