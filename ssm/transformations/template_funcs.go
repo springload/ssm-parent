@@ -11,6 +11,7 @@ import (
 var funcMap = template.FuncMap{
 	"env":          GetEnv,
 	"url_host":     URLHost,
+	"url_port":     URLPort,
 	"url_password": URLPassword,
 	"url_path":     URLPath,
 	"url_scheme":   URLScheme,
@@ -59,13 +60,22 @@ func URLScheme(input string) (string, error) {
 	return u.Scheme, nil
 }
 
-// URLHost extracts host from the URL or returns "" if it's not set
+// URLHost extracts host from the URL or returns "" if it's not set. It also strips any port if there is any
 func URLHost(input string) (string, error) {
 	u, err := url.Parse(input)
 	if err != nil {
 		return "", err
 	}
-	return u.Host, nil
+	return u.Hostname(), nil
+}
+
+// URLHost extracts host from the URL or returns "" if it's not set
+func URLPort(input string) (string, error) {
+	u, err := url.Parse(input)
+	if err != nil {
+		return "", err
+	}
+	return u.Port(), nil
 }
 
 // URLPath extracts path from the URL or returns "" if it's not set
