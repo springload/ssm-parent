@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/springload/ssm-parent/ssm"
 
@@ -32,7 +33,7 @@ var printCmd = &cobra.Command{
 		if err != nil {
 			log.WithError(err).Fatal("Can't marshal json")
 		}
-		log.Info(string(marshalled))
+		fmt.Println(string(marshalled))
 	},
 }
 
