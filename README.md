@@ -1,7 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/springload/ssm-parent)](https://goreportcard.com/report/github.com/springload/ssm-parent)
 
-SSM Parent
-----------
+## SSM Parent
 
 This is wrapper entrypoint for Docker to do one thing: fetch parameters from SSM Parameter store and expose them as environment variables to the underlying process.
 
@@ -52,6 +51,7 @@ The SSM parameter names or paths can be specified with `-p` or `-n` flags. In th
 If several parameters are specified, all JSON entities will be read and merged into one, overriding existing keys, i.e.
 
 Parameter one:
+
 ```
     {
         "USERNAME": "myuser",
@@ -60,6 +60,7 @@ Parameter one:
 ```
 
 Parameter two:
+
 ```
     {
         "DATABASE": "test"
@@ -67,6 +68,7 @@ Parameter two:
 ```
 
 The result will be merged as this:
+
 ```
     {
         "USERNAME": "myuser",
@@ -76,7 +78,7 @@ The result will be merged as this:
 
 One can also specify `--plain-name` and `--plain-path` command line options to read _plain_ parameters that are not in JSON format.
 `ssm-parent` takes the value as is, and constructs a key name from the `basename parameter`,
- i.e. a SSM Parameter `/project/environment/myParameter` with value `supervalue` will be exported as `myParameter=supervalue`.
+i.e. a SSM Parameter `/project/environment/myParameter` with value `supervalue` will be exported as `myParameter=supervalue`.
 
 ### How to use
 
@@ -111,18 +113,18 @@ debug: true
 paths: ["/$PROJECT/common/", "/$PROJECT/$ENVIRONMENT"]
 
 transformations:
-  - action: template
-    rule:
-      SS_DATABASE_SERVER: "{{ url_host .DATABASE_URL }}"
-      SS_DATABASE_USERNAME: "{{ url_user .DATABASE_URL }}"
-      SS_DATABASE_PASSWORD: "{{ url_password .DATABASE_URL }}"
-      SS_DATABASE_NAME: "{{ with $x := url_path .DATABASE_URL }}{{ trim_prefix $x \"/\" }}{{end}}"
-  - action: rename
-    rule:
-      AWS_BUCKET: AWS_S3_BUCKET
-  - action: delete
-    rule:
-      - DATABASE_URL
+    - action: template
+      rule:
+          SS_DATABASE_SERVER: "{{ url_host .DATABASE_URL }}"
+          SS_DATABASE_USERNAME: "{{ url_user .DATABASE_URL }}"
+          SS_DATABASE_PASSWORD: "{{ url_password .DATABASE_URL }}"
+          SS_DATABASE_NAME: '{{ with $x := url_path .DATABASE_URL }}{{ trim_prefix $x "/" }}{{end}}'
+    - action: rename
+      rule:
+          AWS_BUCKET: AWS_S3_BUCKET
+    - action: delete
+      rule:
+          - DATABASE_URL
 ```
 
 ### Example Dockerfile part
@@ -158,6 +160,7 @@ CMD ["caddy" , "--conf", "/etc/Caddyfile", "--log", "stdout"]
 ### Config generation
 
 If your application can't be configured via environment variables, then the following script, utilising `envsubst`, can be used to generate configs.
+
 ```
 #!/bin/sh
 
@@ -172,6 +175,7 @@ exec $@
 Sometimes you just want a .env file, and it is also possible.
 
 Just specify all the same parameters, but use `dotenv` command instead with a filename to generate `.env` file.
+
 ```
 ./ssm-parent dotenv -r -p /project/environment dotenv.env
 2018/10/01 16:37:59  info Wrote the .env file       filename=dotenv.env
