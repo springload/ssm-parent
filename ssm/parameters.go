@@ -230,16 +230,18 @@ func getAllParameters(names, paths, plainNames, plainPaths []string, strict, rec
 }
 
 // GetParameters returns all parameters by path/names, with optional env vars expansion
-func GetParameters(names, paths, plainNames, plainPaths []string, transformationsList []transformations.Transformation, expand, strict, recursive bool) (parameters map[string]string, err error) {
+func GetParameters(names, paths, plainNames, plainPaths []string, transformationsList []transformations.Transformation, expand, strict, recursive, expandNames, expandPaths bool, expandValues []string) (parameters map[string]string, err error) {
 	localNames := names
 	localPaths := paths
 	localPlainNames := plainNames
 	localPlainPaths := plainPaths
 
-	if expand {
+	if expand || expandNames {
 		localNames = ExpandArgs(names)
-		localPaths = ExpandArgs(paths)
 		localPlainNames = ExpandArgs(plainNames)
+	}
+	if expand || expandPaths {
+		localPaths = ExpandArgs(paths)
 		localPlainPaths = ExpandArgs(plainPaths)
 	}
 	allParameters, err := getAllParameters(localNames, localPaths, localPlainNames, localPlainPaths, strict, recursive)
@@ -253,11 +255,11 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 			log.WithError(err).Fatal("Can't merge maps")
 		}
 	}
-	for key, value := range parameters {
-		if expand {
-			parameters[key] = ExpandValue(value)
-		}
+
+	if err := expandParameters(parameters, expand, expandValues); err != nil {
+		log.WithError(err).Fatal("Can't expand vars")
 	}
+
 	for _, transformation := range transformationsList {
 		parameters, err = transformation.Transform(parameters)
 		if err != nil {

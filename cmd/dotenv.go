@@ -27,6 +27,9 @@ var dotenvCmd = &cobra.Command{
 			viper.GetBool("expand"),
 			viper.GetBool("strict"),
 			viper.GetBool("recursive"),
+			viper.GetBool("expand-names"),
+			viper.GetBool("expand-paths"),
+			viper.GetStringSlice("expand-values"),
 		)
 		if err != nil {
 			log.WithError(err).Fatal("Can't get parameters")
