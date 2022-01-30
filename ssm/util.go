@@ -2,9 +2,6 @@ package ssm
 
 import (
 	"os"
-	"strings"
-
-	"github.com/buildkite/interpolate"
 )
 
 var env Env
@@ -23,26 +20,6 @@ func stringSliceDifference(a, b []string) []string {
 		}
 	}
 	return ab
-}
-
-// ExpandArgs expands arguments using env vars
-func ExpandArgs(args []string) []string {
-	var expanded []string
-	for _, arg := range args {
-		arg = ExpandValue(arg)
-		expanded = append(expanded, arg)
-	}
-	return expanded
-}
-
-// ExpandValue interpolates values using env vars
-func ExpandValue(val string) string {
-	e, err := interpolate.Interpolate(env, val)
-	if err == nil {
-		return strings.TrimSpace(string(e))
-	}
-	return val
-
 }
 
 // Env just adapts os.LookupEnv to this interface
