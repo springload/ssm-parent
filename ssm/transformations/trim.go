@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-func TrimKeys(parameters map[string]string, trim string, startsWith string) error {
+func TrimKeys(parameters map[string]string, trim string, startsWith string) {
 
 	for key, value := range parameters {
 		if strings.HasPrefix(key, startsWith) {
@@ -12,7 +12,5 @@ func TrimKeys(parameters map[string]string, trim string, startsWith string) erro
 			delete(parameters, key)
 		}
 	}
-
-	return nil
 
 }
