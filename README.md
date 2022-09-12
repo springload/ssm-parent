@@ -107,7 +107,7 @@ trim_name_prefix will match any variables starting with `starts_with` and will r
 There is practically no limit on the number of transformations and they are applied in order from top to the bottom.
 
 Below there is an example that recursively gets parameters from `/$PROJECT/common/` and `/$PROJECT/$ENVIRONMENT` and constructs variables out of
-`DATABASE_URL` to be consumed by an PHP application. It also renames `AWS_BUCKET` to `AWS_S3_BUCKET` and removes `DATABASE_URL` afterwards.
+`DATABASE_URL` to be consumed by an PHP application. It also renames `AWS_BUCKET` to `AWS_S3_BUCKET`, removes `DATABASE_URL` and trims a leading underscore from any variable name that may start with `_PHP`.
 
 ```yaml
 recursive: true
