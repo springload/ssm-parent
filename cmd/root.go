@@ -89,6 +89,15 @@ func initSettings() {
 				}).WithError(err).Fatal("can't decode config")
 			}
 			transformationsList = append(transformationsList, tr)
+		case "trim_name_prefix":
+			tr := new(transformations.TrimTransformation)
+			if err := mapstructure.Decode(t, tr); err != nil {
+				log.WithFields(log.Fields{
+					"transformation_number": n,
+					"transformation_action": hint.Action,
+				}).WithError(err).Fatal("can't decode config")
+			}
+			transformationsList = append(transformationsList, tr)
 
 		default:
 			log.Warnf("Got unparsed action: %s", hint.Action)

@@ -95,11 +95,14 @@ The supported transformations are:
 1. rename - renames env vars
 2. delete - deletes env vars
 3. template - templates env vars
+4. trim_name_prefix - removes a prefix from variable names
 
-Rename and template transormations expect a dictionary rule. The delete transormation expects an array.
+Rename, template, trim_name_prefix transormations expect a dictionary rule. The delete transormation expects an array.
 Template transformation uses [Go templates](https://golang.org/pkg/text/template/), and the environment variables map is passed as `.`.
 
 There are the following extra functions available in templates: url_host, url_user, url_password, url_path, url_scheme and trim_prefix. The current list of the custom functions can be found here https://github.com/springload/ssm-parent/blob/master/ssm/transformations/template_funcs.go#L9
+
+trim_name_prefix will match any variables starting with `startswith` and will remove the `trim` string from the start of the corresponding variable names.
 
 There is practically no limit on the number of transformations and they are applied in order from top to the bottom.
 
@@ -125,6 +128,10 @@ transformations:
     - action: delete
       rule:
           - DATABASE_URL
+    - action: trim_name_prefix
+      rule:
+          trim: "_"
+          startswith: "_PHP"
 ```
 
 ### Example Dockerfile part

@@ -69,3 +69,21 @@ func (t *TemplateTransformation) Transform(source map[string]string) (map[string
 
 	return source, nil
 }
+
+// TrimTransformation modifies the keys in the input map
+type TrimTransformation struct {
+	Action string
+	Rule   map[string]string
+}
+
+func (t *TrimTransformation) Transform(source map[string]string) (map[string]string, error) {
+	if _, found := t.Rule["trim"]; !found {
+		return source, fmt.Errorf("\"trim\" rule not set")
+	}
+	if _, found := t.Rule["startswith"]; !found {
+		return source, fmt.Errorf("\"startswith\" rule not set")
+	}
+	TrimKeys(source, t.Rule["trim"], t.Rule["startswith"])
+
+	return source, nil
+}
