@@ -17,9 +17,7 @@ func TestTrimKeys(t *testing.T) {
 		"another_value": "_ANOTHER_PARAMETER",
 	}
 
-	if err := TrimKeys(parameters, "_", "_PREFIXED_"); err != nil {
-		t.Errorf("expected no error, but got: %s", err)
-	}
+	TrimKeys(parameters, "_", "_PREFIXED_")
 
 	// Swap result keys and values to check against expectations
 	result := make(map[string]string)
