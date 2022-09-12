@@ -27,9 +27,9 @@ func TestTrimKeys(t *testing.T) {
 		result[value] = key
 	}
 
-	for val, expected_param := range expecting {
-		if result[val] != expected_param {
-			t.Errorf("'%s's key should be '%s', but got '%s'", val, expected_param, result[val])
+	for val, expectedParam := range expecting {
+		if result[val] != expectedParam {
+			t.Errorf("'%s's key should be '%s', but got '%s'", val, expectedParam, result[val])
 		}
 	}
 }

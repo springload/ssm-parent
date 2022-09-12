@@ -80,10 +80,10 @@ func (t *TrimTransformation) Transform(source map[string]string) (map[string]str
 	if _, found := t.Rule["trim"]; !found {
 		return source, fmt.Errorf("\"trim\" rule not set")
 	}
-	if _, found := t.Rule["startswith"]; !found {
-		return source, fmt.Errorf("\"startswith\" rule not set")
+	if _, found := t.Rule["starts_with"]; !found {
+		return source, fmt.Errorf("\"starts_with\" rule not set")
 	}
-	TrimKeys(source, t.Rule["trim"], t.Rule["startswith"])
+	TrimKeys(source, t.Rule["trim"], t.Rule["starts_with"])
 
 	return source, nil
 }
