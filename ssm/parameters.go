@@ -187,9 +187,7 @@ func getAllParameters(names, paths, plainNames, plainPaths []string, strict, rec
 				log.Fields{"paths": paths},
 			).Fatal("Can't get parameters by paths")
 		}
-		for _, parameter := range parametersFromPaths {
-			parameters = append(parameters, parameter)
-		}
+		parameters = append(parameters, parametersFromPaths...)
 	}
 	if len(names) > 0 {
 		parametersFromNames, err := getJsonSSMParameters(names, strict)
@@ -198,9 +196,7 @@ func getAllParameters(names, paths, plainNames, plainPaths []string, strict, rec
 				log.Fields{"names": names},
 			).Fatal("Can't get parameters by names")
 		}
-		for _, parameter := range parametersFromNames {
-			parameters = append(parameters, parameter)
-		}
+		parameters = append(parameters, parametersFromNames...)
 	}
 	if len(plainPaths) > 0 {
 		parametersFromPlainPaths, err := getPlainSSMParametersByPaths(plainPaths, strict, recursive)
@@ -209,9 +205,7 @@ func getAllParameters(names, paths, plainNames, plainPaths []string, strict, rec
 				log.Fields{"plain_paths": plainPaths},
 			).Fatal("Can't get plain parameters by paths")
 		}
-		for _, parameter := range parametersFromPlainPaths {
-			parameters = append(parameters, parameter)
-		}
+		parameters = append(parameters, parametersFromPlainPaths...)
 	}
 
 	if len(plainNames) > 0 {
@@ -221,9 +215,7 @@ func getAllParameters(names, paths, plainNames, plainPaths []string, strict, rec
 				log.Fields{"plain_names": plainNames},
 			).Fatal("Can't get plain parameters by names")
 		}
-		for _, parameter := range parametersFromPlainNames {
-			parameters = append(parameters, parameter)
-		}
+		parameters = append(parameters, parametersFromPlainNames...)
 	}
 
 	return

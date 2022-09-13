@@ -123,15 +123,21 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("recursive", "r", false, "Walk through the provided SSM paths recursively.")
 	rootCmd.PersistentFlags().BoolP("strict", "s", false, "Strict mode. Fail if found less parameters than number of names.")
 
-	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
-	viper.BindPFlag("expand", rootCmd.PersistentFlags().Lookup("expand"))
-	viper.BindPFlag("expand-names", rootCmd.PersistentFlags().Lookup("expand-names"))
-	viper.BindPFlag("expand-paths", rootCmd.PersistentFlags().Lookup("expand-paths"))
-	viper.BindPFlag("expand-values", rootCmd.PersistentFlags().Lookup("expand-values"))
-	viper.BindPFlag("paths", rootCmd.PersistentFlags().Lookup("path"))
-	viper.BindPFlag("names", rootCmd.PersistentFlags().Lookup("name"))
-	viper.BindPFlag("plain-paths", rootCmd.PersistentFlags().Lookup("plain-path"))
-	viper.BindPFlag("plain-names", rootCmd.PersistentFlags().Lookup("plain-name"))
-	viper.BindPFlag("recursive", rootCmd.PersistentFlags().Lookup("recursive"))
-	viper.BindPFlag("strict", rootCmd.PersistentFlags().Lookup("strict"))
+	for _, err := range []error{
+		viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")),
+		viper.BindPFlag("expand", rootCmd.PersistentFlags().Lookup("expand")),
+		viper.BindPFlag("expand-names", rootCmd.PersistentFlags().Lookup("expand-names")),
+		viper.BindPFlag("expand-paths", rootCmd.PersistentFlags().Lookup("expand-paths")),
+		viper.BindPFlag("expand-values", rootCmd.PersistentFlags().Lookup("expand-values")),
+		viper.BindPFlag("paths", rootCmd.PersistentFlags().Lookup("path")),
+		viper.BindPFlag("names", rootCmd.PersistentFlags().Lookup("name")),
+		viper.BindPFlag("plain-paths", rootCmd.PersistentFlags().Lookup("plain-path")),
+		viper.BindPFlag("plain-names", rootCmd.PersistentFlags().Lookup("plain-name")),
+		viper.BindPFlag("recursive", rootCmd.PersistentFlags().Lookup("recursive")),
+		viper.BindPFlag("strict", rootCmd.PersistentFlags().Lookup("strict")),
+	} {
+		if err != nil {
+			log.WithError(err).Fatalf("can't bind flags")
+		}
+	}
 }
