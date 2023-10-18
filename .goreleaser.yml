@@ -1,6 +1,8 @@
 # .goreleaser.yml
 builds:
   - binary: ssm-parent
+    env:
+      - CGO_ENABLED=0
     goos:
       - darwin
       - linux
