@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	goPath "path"
+	"strings"
 
 	"github.com/apex/log"
 	"github.com/aws/aws-sdk-go/aws"
@@ -251,6 +252,16 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 	if err := expandParameters(parameters, expand, expandValues); err != nil {
 		log.WithError(err).Fatal("Can't expand vars")
 	}
+
+	// Normalize parameter names to support both uppercase and lowercase for backwards compatibility
+	// This ensures rename transformations work regardless of casing in config files
+	normalizedParameters := make(map[string]string)
+	for key, value := range parameters {
+		normalizedParameters[key] = value                        // original key
+		normalizedParameters[strings.ToLower(key)] = value      // lowercase version
+		normalizedParameters[strings.ToUpper(key)] = value      // uppercase version
+	}
+	parameters = normalizedParameters
 
 	for _, transformation := range transformationsList {
 		parameters, err = transformation.Transform(parameters)
