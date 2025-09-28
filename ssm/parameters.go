@@ -253,17 +253,15 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 		log.WithError(err).Fatal("Can't expand vars")
 	}
 
-	// Normalize all parameter names to UPPERCASE to ensure consistent casing
-	// This solves the Viper case sensitivity issue where config keys are lowercase
-	// but AWS SSM parameters need to be matched regardless of original casing
+	// Normalize only the parameter keys to UPPERCASE to solve Viper case sensitivity issue
+	// This ensures AWS parameter names match the transformation rule keys from config
 	normalizedParameters := make(map[string]string)
 	for key, value := range parameters {
-		upperKey := strings.ToUpper(key)
-		normalizedParameters[upperKey] = value
+		normalizedParameters[strings.ToUpper(key)] = value
 	}
 	parameters = normalizedParameters
 
-	// Normalize transformation rule keys to uppercase to match normalized parameters
+	// Normalize transformation rule keys for rename/template/delete to UPPERCASE to match parameters
 	for _, transformation := range transformationsList {
 		switch t := transformation.(type) {
 		case *transformations.RenameTransformation:
@@ -278,17 +276,13 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 				normalizedRule[strings.ToUpper(key)] = value
 			}
 			t.Rule = normalizedRule
-		case *transformations.TrimTransformation:
-			normalizedRule := make(map[string]string)
-			for key, value := range t.Rule {
-				normalizedRule[strings.ToUpper(key)] = value
-			}
-			t.Rule = normalizedRule
 		case *transformations.DeleteTransformation:
 			for i, key := range t.Rule {
 				t.Rule[i] = strings.ToUpper(key)
 			}
 		}
+		// Note: TrimTransformation config keys (trim, starts_with) are NOT normalized
+		// because they are configuration instructions, not parameter names
 	}
 
 	for _, transformation := range transformationsList {
@@ -297,14 +291,5 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 			log.WithError(err).Fatal("can't transform parameter")
 		}
 	}
-
-	// Normalize again after transformations to ensure all new keys are also uppercase
-	// This handles keys created by template and other transformations
-	finalNormalizedParameters := make(map[string]string)
-	for key, value := range parameters {
-		upperKey := strings.ToUpper(key)
-		finalNormalizedParameters[upperKey] = value
-	}
-	parameters = finalNormalizedParameters
 	return
 }
