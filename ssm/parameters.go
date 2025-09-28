@@ -263,6 +263,34 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 	}
 	parameters = normalizedParameters
 
+	// Normalize transformation rule keys to uppercase to match normalized parameters
+	for _, transformation := range transformationsList {
+		switch t := transformation.(type) {
+		case *transformations.RenameTransformation:
+			normalizedRule := make(map[string]string)
+			for key, value := range t.Rule {
+				normalizedRule[strings.ToUpper(key)] = value
+			}
+			t.Rule = normalizedRule
+		case *transformations.TemplateTransformation:
+			normalizedRule := make(map[string]string)
+			for key, value := range t.Rule {
+				normalizedRule[strings.ToUpper(key)] = value
+			}
+			t.Rule = normalizedRule
+		case *transformations.TrimTransformation:
+			normalizedRule := make(map[string]string)
+			for key, value := range t.Rule {
+				normalizedRule[strings.ToUpper(key)] = value
+			}
+			t.Rule = normalizedRule
+		case *transformations.DeleteTransformation:
+			for i, key := range t.Rule {
+				t.Rule[i] = strings.ToUpper(key)
+			}
+		}
+	}
+
 	for _, transformation := range transformationsList {
 		parameters, err = transformation.Transform(parameters)
 		if err != nil {

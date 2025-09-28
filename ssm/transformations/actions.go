@@ -77,13 +77,13 @@ type TrimTransformation struct {
 }
 
 func (t *TrimTransformation) Transform(source map[string]string) (map[string]string, error) {
-	if _, found := t.Rule["trim"]; !found {
-		return source, fmt.Errorf("\"trim\" rule not set")
+	if _, found := t.Rule["TRIM"]; !found {
+		return source, fmt.Errorf("\"TRIM\" rule not set")
 	}
-	if _, found := t.Rule["starts_with"]; !found {
-		return source, fmt.Errorf("\"starts_with\" rule not set")
+	if _, found := t.Rule["STARTS_WITH"]; !found {
+		return source, fmt.Errorf("\"STARTS_WITH\" rule not set")
 	}
-	TrimKeys(source, t.Rule["trim"], t.Rule["starts_with"])
+	TrimKeys(source, t.Rule["TRIM"], t.Rule["STARTS_WITH"])
 
 	return source, nil
 }
