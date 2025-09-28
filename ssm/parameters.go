@@ -253,13 +253,13 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 		log.WithError(err).Fatal("Can't expand vars")
 	}
 
-	// Normalize parameter names to support both uppercase and lowercase for backwards compatibility
-	// This ensures rename transformations work regardless of casing in config files
+	// Normalize all parameter names to UPPERCASE to ensure consistent casing
+	// This solves the Viper case sensitivity issue where config keys are lowercase
+	// but AWS SSM parameters need to be matched regardless of original casing
 	normalizedParameters := make(map[string]string)
 	for key, value := range parameters {
-		normalizedParameters[key] = value                        // original key
-		normalizedParameters[strings.ToLower(key)] = value      // lowercase version
-		normalizedParameters[strings.ToUpper(key)] = value      // uppercase version
+		upperKey := strings.ToUpper(key)
+		normalizedParameters[upperKey] = value
 	}
 	parameters = normalizedParameters
 
@@ -269,5 +269,14 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 			log.WithError(err).Fatal("can't transform parameter")
 		}
 	}
+
+	// Normalize again after transformations to ensure all new keys are also uppercase
+	// This handles keys created by template and other transformations
+	finalNormalizedParameters := make(map[string]string)
+	for key, value := range parameters {
+		upperKey := strings.ToUpper(key)
+		finalNormalizedParameters[upperKey] = value
+	}
+	parameters = finalNormalizedParameters
 	return
 }
