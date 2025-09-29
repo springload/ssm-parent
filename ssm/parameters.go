@@ -237,13 +237,20 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 		localPaths = ExpandArgs(paths)
 		localPlainPaths = ExpandArgs(plainPaths)
 	}
+	
 	allParameters, err := getAllParameters(localNames, localPaths, localPlainNames, localPlainPaths, strict, recursive)
 	if err != nil {
 		return parameters, err
 	}
+	
 	parameters = make(map[string]string)
 	for _, parameter := range allParameters {
-		err = mergo.Merge(&parameters, &parameter, mergo.WithOverride)
+		// Normalize keys to uppercase before merging to solve Viper case sensitivity issue
+		normalized := make(map[string]string, len(parameter))
+		for k, v := range parameter {
+			normalized[strings.ToUpper(k)] = v
+		}
+		err = mergo.Merge(&parameters, &normalized, mergo.WithOverride)
 		if err != nil {
 			log.WithError(err).Fatal("Can't merge maps")
 		}
@@ -253,25 +260,17 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 		log.WithError(err).Fatal("Can't expand vars")
 	}
 
-	// Normalize only the parameter keys to UPPERCASE to solve Viper case sensitivity issue
-	// This ensures AWS parameter names match the transformation rule keys from config
-	normalizedParameters := make(map[string]string)
-	for key, value := range parameters {
-		normalizedParameters[strings.ToUpper(key)] = value
-	}
-	parameters = normalizedParameters
-
-	// Normalize transformation rule keys for rename/template/delete to UPPERCASE to match parameters
+	// Normalize transformation rule keys to uppercase to match parameter keys
 	for _, transformation := range transformationsList {
 		switch t := transformation.(type) {
 		case *transformations.RenameTransformation:
-			normalizedRule := make(map[string]string)
+			normalizedRule := make(map[string]string, len(t.Rule))
 			for key, value := range t.Rule {
 				normalizedRule[strings.ToUpper(key)] = value
 			}
 			t.Rule = normalizedRule
 		case *transformations.TemplateTransformation:
-			normalizedRule := make(map[string]string)
+			normalizedRule := make(map[string]string, len(t.Rule))
 			for key, value := range t.Rule {
 				normalizedRule[strings.ToUpper(key)] = value
 			}
@@ -293,3 +292,4 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 	}
 	return
 }
+
