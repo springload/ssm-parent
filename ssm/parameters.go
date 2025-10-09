@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	goPath "path"
+	"strings"
 
 	"github.com/apex/log"
 	"github.com/aws/aws-sdk-go/aws"
@@ -236,13 +237,20 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 		localPaths = ExpandArgs(paths)
 		localPlainPaths = ExpandArgs(plainPaths)
 	}
+	
 	allParameters, err := getAllParameters(localNames, localPaths, localPlainNames, localPlainPaths, strict, recursive)
 	if err != nil {
 		return parameters, err
 	}
+	
 	parameters = make(map[string]string)
 	for _, parameter := range allParameters {
-		err = mergo.Merge(&parameters, &parameter, mergo.WithOverride)
+		// Normalize keys to uppercase before merging to solve Viper case sensitivity issue
+		normalized := make(map[string]string, len(parameter))
+		for k, v := range parameter {
+			normalized[strings.ToUpper(k)] = v
+		}
+		err = mergo.Merge(&parameters, &normalized, mergo.WithOverride)
 		if err != nil {
 			log.WithError(err).Fatal("Can't merge maps")
 		}
@@ -250,6 +258,30 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 
 	if err := expandParameters(parameters, expand, expandValues); err != nil {
 		log.WithError(err).Fatal("Can't expand vars")
+	}
+
+	// Normalize transformation rule keys to uppercase to match parameter keys
+	for _, transformation := range transformationsList {
+		switch t := transformation.(type) {
+		case *transformations.RenameTransformation:
+			normalizedRule := make(map[string]string, len(t.Rule))
+			for key, value := range t.Rule {
+				normalizedRule[strings.ToUpper(key)] = value
+			}
+			t.Rule = normalizedRule
+		case *transformations.TemplateTransformation:
+			normalizedRule := make(map[string]string, len(t.Rule))
+			for key, value := range t.Rule {
+				normalizedRule[strings.ToUpper(key)] = value
+			}
+			t.Rule = normalizedRule
+		case *transformations.DeleteTransformation:
+			for i, key := range t.Rule {
+				t.Rule[i] = strings.ToUpper(key)
+			}
+		}
+		// Note: TrimTransformation config keys (trim, starts_with) are NOT normalized
+		// because they are configuration instructions, not parameter names
 	}
 
 	for _, transformation := range transformationsList {
@@ -260,3 +292,4 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 	}
 	return
 }
+
