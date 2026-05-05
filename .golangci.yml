@@ -1,0 +1,6 @@
+issues:
+  exclude-rules:
+    - path: ssm/parameters\.go
+      linters:
+        - staticcheck
+      text: "SA1019.*aws-sdk-go"

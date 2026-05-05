@@ -1,4 +1,5 @@
 # .goreleaser.yml
+version: 2
 builds:
   - binary: ssm-parent
     env:
