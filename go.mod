@@ -38,4 +38,4 @@ require (
 
 go 1.24
 
-toolchain go1.24.13
+toolchain go1.27.1
