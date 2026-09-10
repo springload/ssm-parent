@@ -16,7 +16,17 @@
       "platformAutomerge": true
     },
     {
+      "groupName": "all major github actions",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "groupName": "all major dependencies",
       "matchPackageNames": ["*"],
+      "excludeManagers": ["github-actions"],
       "matchUpdateTypes": ["major"],
       "automerge": false
     }
