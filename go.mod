@@ -5,7 +5,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/buildkite/interpolate v0.1.5
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/imdario/mergo v0.3.16
+	github.com/imdario/mergo v1.0.2
 	github.com/joho/godotenv v1.5.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/spf13/cobra v1.9.1
