@@ -20,4 +20,4 @@ jobs:
       - name: Autolabel PR
         uses: release-drafter/release-drafter/autolabeler@v7
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CICD_TOKEN }}

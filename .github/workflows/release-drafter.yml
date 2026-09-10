@@ -16,7 +16,7 @@ jobs:
       - name: Update release draft
         uses: release-drafter/release-drafter@v7
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CICD_TOKEN }}
 
   publish-if-security-fix:
     needs: update-release-draft
@@ -27,7 +27,7 @@ jobs:
       - name: Check if pushed commit's PR was a security fix
         id: check
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.CICD_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -40,7 +40,7 @@ jobs:
       - name: Publish current draft release
         if: steps.check.outputs.is_security == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.CICDTOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail

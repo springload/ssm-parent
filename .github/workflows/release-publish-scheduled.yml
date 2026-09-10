@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Publish current draft release, if any
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.CICD_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
