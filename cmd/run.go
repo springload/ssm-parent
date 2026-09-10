@@ -38,7 +38,9 @@ var runCmd = &cobra.Command{
 			log.WithError(err).Fatal("Can't get parameters")
 		}
 		for key, value := range parameters {
-			os.Setenv(key, value)
+			if err := os.Setenv(key, value); err != nil {
+				log.WithError(err).WithFields(log.Fields{"key": key}).Fatal("Can't set environment variable")
+			}
 		}
 
 		command, err := exec.LookPath(args[0])

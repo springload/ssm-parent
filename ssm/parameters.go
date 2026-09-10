@@ -39,7 +39,7 @@ func collectJsonParameters(responseParameters []*ssm.Parameter) (parameters []ma
 	for _, parameter := range responseParameters {
 		value := make(map[string]string)
 		if innerErr := json.Unmarshal([]byte(aws.StringValue(parameter.Value)), &value); innerErr != nil {
-			errors = append(errors, fmt.Errorf("Can't unmarshal json from '%s': %s", aws.StringValue(parameter.Name), innerErr))
+			errors = append(errors, fmt.Errorf("can't unmarshal json from '%s': %s", aws.StringValue(parameter.Name), innerErr))
 		} else {
 			parameters = append(parameters, value)
 		}
@@ -69,7 +69,7 @@ func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parame
 		},
 		)
 		if innerErr != nil {
-			err = multierror.Append(err, fmt.Errorf("Can't get parameters from path '%s': %s", path, innerErr))
+			err = multierror.Append(err, fmt.Errorf("can't get parameters from path '%s': %s", path, innerErr))
 		}
 	}
 
@@ -91,7 +91,7 @@ func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]
 	}
 	if len(response.Parameters) < len(names) {
 		if strict {
-			err = multierror.Append(err, fmt.Errorf("Found %d parameters from %d names", len(response.Parameters), len(names)))
+			err = multierror.Append(err, fmt.Errorf("found %d parameters from %d names", len(response.Parameters), len(names)))
 		} else {
 			var found []string
 			for _, f := range response.Parameters {
@@ -140,7 +140,7 @@ func getPlainSSMParametersByPaths(paths []string, strict, recursive bool) (param
 		},
 		)
 		if innerErr != nil {
-			err = multierror.Append(err, fmt.Errorf("Can't get parameters from path '%s': %s", path, innerErr))
+			err = multierror.Append(err, fmt.Errorf("can't get parameters from path '%s': %s", path, innerErr))
 		}
 	}
 	return
@@ -161,7 +161,7 @@ func getPlainSSMParameters(names []string, strict bool) (parameters []map[string
 	}
 	if len(response.Parameters) < len(names) {
 		if strict {
-			err = multierror.Append(err, fmt.Errorf("Found %d parameters from %d names", len(response.Parameters), len(names)))
+			err = multierror.Append(err, fmt.Errorf("found %d parameters from %d names", len(response.Parameters), len(names)))
 		} else {
 			var found []string
 			for _, f := range response.Parameters {
