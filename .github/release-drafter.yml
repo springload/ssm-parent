@@ -28,6 +28,23 @@ categories:
       conventional:
         type: 'fix'
 
+autolabeler:
+  - label: 'breaking'
+    title:
+      - '/^(feat|fix)!:/'
+  - label: 'feature'
+    title:
+      - '/^feat(\(.+\))?:/'
+  - label: 'fix'
+    title:
+      - '/^fix(?!\(deps\))(\(.+\))?:/'
+  - label: 'renovate'
+    title:
+      - '/^(fix|chore)\(deps\):/'
+  - label: 'security'
+    title:
+      - '/^fix\(security\):/'
+
 change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
 
 template: |

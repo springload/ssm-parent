@@ -40,7 +40,7 @@ jobs:
       - name: Publish current draft release
         if: steps.check.outputs.is_security == 'true'
         env:
-          GH_TOKEN: ${{ secrets.CICDTOKEN }}
+          GH_TOKEN: ${{ secrets.CICD_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
