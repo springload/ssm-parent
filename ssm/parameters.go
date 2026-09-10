@@ -6,12 +6,12 @@ import (
 	goPath "path"
 	"strings"
 
+	"dario.cat/mergo"
 	"github.com/apex/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/imdario/mergo"
 
 	"github.com/springload/ssm-parent/ssm/transformations"
 )
@@ -237,12 +237,12 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 		localPaths = ExpandArgs(paths)
 		localPlainPaths = ExpandArgs(plainPaths)
 	}
-	
+
 	allParameters, err := getAllParameters(localNames, localPaths, localPlainNames, localPlainPaths, strict, recursive)
 	if err != nil {
 		return parameters, err
 	}
-	
+
 	parameters = make(map[string]string)
 	for _, parameter := range allParameters {
 		// Normalize keys to uppercase before merging to solve Viper case sensitivity issue
@@ -292,4 +292,3 @@ func GetParameters(names, paths, plainNames, plainPaths []string, transformation
 	}
 	return
 }
-
