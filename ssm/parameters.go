@@ -1,6 +1,7 @@
 package ssm
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	goPath "path"
@@ -8,38 +9,34 @@ import (
 
 	"dario.cat/mergo"
 	"github.com/apex/log"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	multierror "github.com/hashicorp/go-multierror"
 
 	"github.com/springload/ssm-parent/ssm/transformations"
 )
 
-var localSession *session.Session
+var localClient *ssm.Client
 
 func makeSession() error {
-	if localSession == nil {
+	if localClient == nil {
 		log.Debug("Creating session")
-		var err error
-		// create AWS session
-		localSession, err = session.NewSessionWithOptions(session.Options{
-			Config:            aws.Config{},
-			SharedConfigState: session.SharedConfigEnable,
-			Profile:           "",
-		})
+		cfg, err := config.LoadDefaultConfig(context.TODO())
 		if err != nil {
 			return fmt.Errorf("can't get aws session")
 		}
+		localClient = ssm.NewFromConfig(cfg)
 	}
 	return nil
 }
 
-func collectJsonParameters(responseParameters []*ssm.Parameter) (parameters []map[string]string, errors []error) {
+func collectJsonParameters(responseParameters []types.Parameter) (parameters []map[string]string, errors []error) {
 	for _, parameter := range responseParameters {
 		value := make(map[string]string)
-		if innerErr := json.Unmarshal([]byte(aws.StringValue(parameter.Value)), &value); innerErr != nil {
-			errors = append(errors, fmt.Errorf("can't unmarshal json from '%s': %s", aws.StringValue(parameter.Name), innerErr))
+		if innerErr := json.Unmarshal([]byte(aws.ToString(parameter.Value)), &value); innerErr != nil {
+			errors = append(errors, fmt.Errorf("can't unmarshal json from '%s': %s", aws.ToString(parameter.Name), innerErr))
 		} else {
 			parameters = append(parameters, value)
 		}
@@ -52,24 +49,24 @@ func getJsonSSMParametersByPaths(paths []string, strict, recursive bool) (parame
 	if err != nil {
 		log.WithError(err).Fatal("Can't create session") // fail early here
 	}
-	s := ssm.New(localSession)
+	ctx := context.TODO()
 	for _, path := range paths {
-		innerErr := s.GetParametersByPathPages(&ssm.GetParametersByPathInput{
+		paginator := ssm.NewGetParametersByPathPaginator(localClient, &ssm.GetParametersByPathInput{
 			Path:           aws.String(path),
 			WithDecryption: aws.Bool(true),
 			Recursive:      aws.Bool(recursive),
-		}, func(response *ssm.GetParametersByPathOutput, last bool) bool {
+		})
+		for paginator.HasMorePages() {
+			response, innerErr := paginator.NextPage(ctx)
+			if innerErr != nil {
+				err = multierror.Append(err, fmt.Errorf("can't get parameters from path '%s': %s", path, innerErr))
+				break
+			}
 			innerParameters, errs := collectJsonParameters(response.Parameters)
 			for _, parseErr := range errs {
 				err = multierror.Append(err, parseErr)
 			}
 			parameters = append(parameters, innerParameters...)
-
-			return true
-		},
-		)
-		if innerErr != nil {
-			err = multierror.Append(err, fmt.Errorf("can't get parameters from path '%s': %s", path, innerErr))
 		}
 	}
 
@@ -81,9 +78,8 @@ func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]
 	if err != nil {
 		log.WithError(err).Fatal("Can't create session") // fail early here
 	}
-	s := ssm.New(localSession)
-	response, err := s.GetParameters(&ssm.GetParametersInput{
-		Names:          aws.StringSlice(names),
+	response, err := localClient.GetParameters(context.TODO(), &ssm.GetParametersInput{
+		Names:          names,
 		WithDecryption: aws.Bool(true),
 	})
 	if err != nil {
@@ -95,7 +91,7 @@ func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]
 		} else {
 			var found []string
 			for _, f := range response.Parameters {
-				found = append(found, aws.StringValue(f.Name))
+				found = append(found, aws.ToString(f.Name))
 			}
 			diff := stringSliceDifference(names, found)
 			log.WithFields(log.Fields{"missing_names": diff}).Warn("Some parameters have not been found")
@@ -109,10 +105,10 @@ func getJsonSSMParameters(names []string, strict bool) (parameters []map[string]
 	return
 }
 
-func collectPlainParameters(responseParameters []*ssm.Parameter) (parameters []map[string]string, errors []error) {
+func collectPlainParameters(responseParameters []types.Parameter) (parameters []map[string]string, errors []error) {
 	for _, parameter := range responseParameters {
 		values := make(map[string]string)
-		values[goPath.Base(aws.StringValue(parameter.Name))] = aws.StringValue(parameter.Value)
+		values[goPath.Base(aws.ToString(parameter.Name))] = aws.ToString(parameter.Value)
 		parameters = append(parameters, values)
 	}
 	return
@@ -123,24 +119,24 @@ func getPlainSSMParametersByPaths(paths []string, strict, recursive bool) (param
 	if err != nil {
 		log.WithError(err).Fatal("Can't create session") // fail early here
 	}
-	s := ssm.New(localSession)
+	ctx := context.TODO()
 	for _, path := range paths {
-		innerErr := s.GetParametersByPathPages(&ssm.GetParametersByPathInput{
+		paginator := ssm.NewGetParametersByPathPaginator(localClient, &ssm.GetParametersByPathInput{
 			Path:           aws.String(path),
 			WithDecryption: aws.Bool(true),
 			Recursive:      aws.Bool(recursive),
-		}, func(response *ssm.GetParametersByPathOutput, last bool) bool {
+		})
+		for paginator.HasMorePages() {
+			response, innerErr := paginator.NextPage(ctx)
+			if innerErr != nil {
+				err = multierror.Append(err, fmt.Errorf("can't get parameters from path '%s': %s", path, innerErr))
+				break
+			}
 			innerParameters, errs := collectPlainParameters(response.Parameters)
 			for _, parseErr := range errs {
 				err = multierror.Append(err, parseErr)
 			}
 			parameters = append(parameters, innerParameters...)
-
-			return true
-		},
-		)
-		if innerErr != nil {
-			err = multierror.Append(err, fmt.Errorf("can't get parameters from path '%s': %s", path, innerErr))
 		}
 	}
 	return
@@ -151,9 +147,8 @@ func getPlainSSMParameters(names []string, strict bool) (parameters []map[string
 	if err != nil {
 		log.WithError(err).Fatal("Can't create session") // fail early here
 	}
-	s := ssm.New(localSession)
-	response, err := s.GetParameters(&ssm.GetParametersInput{
-		Names:          aws.StringSlice(names),
+	response, err := localClient.GetParameters(context.TODO(), &ssm.GetParametersInput{
+		Names:          names,
 		WithDecryption: aws.Bool(true),
 	})
 	if err != nil {
@@ -165,7 +160,7 @@ func getPlainSSMParameters(names []string, strict bool) (parameters []map[string
 		} else {
 			var found []string
 			for _, f := range response.Parameters {
-				found = append(found, aws.StringValue(f.Name))
+				found = append(found, aws.ToString(f.Name))
 			}
 			diff := stringSliceDifference(names, found)
 			log.WithFields(log.Fields{"missing_names": diff}).Warn("Some parameters have not been found")
