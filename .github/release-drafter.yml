@@ -1,0 +1,36 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '💥 Breaking Changes'
+    semver-increment: 'major'
+    when:
+      conventional:
+        breaking: true
+  - title: '🚀 Features'
+    semver-increment: 'minor'
+    when:
+      conventional:
+        type: 'feat'
+  - title: '🔒 Security'
+    semver-increment: 'patch'
+    when:
+      labels:
+        - 'security'
+  - title: '📦 Dependencies'
+    semver-increment: 'patch'
+    when:
+      labels:
+        - 'renovate'
+  - title: '🐛 Fixes'
+    semver-increment: 'patch'
+    when:
+      conventional:
+        type: 'fix'
+
+change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
+
+template: |
+  ## Changes
+
+  $CHANGES

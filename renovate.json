@@ -8,8 +8,20 @@
   "labels": ["renovate"],
   "packageRules": [
     {
-      "groupName": "all dependencies",
-      "matchPackageNames": ["*"]
+      "groupName": "all non-major dependencies",
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
     }
-  ]
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"]
+  }
 }
