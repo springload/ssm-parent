@@ -7,10 +7,16 @@ on:
 
 jobs:
   update-release-draft:
+    name: Update Release Draft
+    runs-on: self-hosted
     permissions:
       contents: write
       pull-requests: read
-    uses: springload/gha-shared/.github/workflows/release-drafter.yml@main
+    steps:
+      - name: Update release draft
+        uses: release-drafter/release-drafter@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-if-security-fix:
     needs: update-release-draft
