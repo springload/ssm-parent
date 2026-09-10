@@ -1,8 +1,7 @@
 name: Build and publish ssm-parent
 on:
-  push:
-    tags:
-      - '*'
+  release:
+    types: [published]
 
 env:
   REGISTRY: ghcr.io

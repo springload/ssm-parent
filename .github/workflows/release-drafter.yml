@@ -1,0 +1,50 @@
+name: Release Drafter
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  update-release-draft:
+    permissions:
+      contents: write
+      pull-requests: read
+    uses: springload/gha-shared/.github/workflows/release-drafter.yml@main
+
+  publish-if-security-fix:
+    needs: update-release-draft
+    runs-on: self-hosted
+    permissions:
+      contents: write
+    steps:
+      - name: Check if pushed commit's PR was a security fix
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          IS_SECURITY=$(gh api "repos/${GH_REPO}/commits/${{ github.sha }}/pulls" \
+            --jq 'any(.[].labels[].name; . == "security")')
+
+          echo "is_security=$IS_SECURITY" >> "$GITHUB_OUTPUT"
+
+      - name: Publish current draft release
+        if: steps.check.outputs.is_security == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          DRAFT_TAG=$(gh release list --limit 10 --json tagName,isDraft --jq '[.[] | select(.isDraft == true)] | .[0].tagName // empty')
+
+          if [ -z "$DRAFT_TAG" ]; then
+            echo "No draft release found — nothing to publish."
+            exit 0
+          fi
+
+          echo "Publishing draft release: $DRAFT_TAG"
+          gh release edit "$DRAFT_TAG" --draft=false

@@ -1,0 +1,31 @@
+name: Publish Scheduled Release
+
+on:
+  schedule:
+    - cron: "0 17 1,15 * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  publish_draft_release:
+    name: Publish Draft Release
+    runs-on: self-hosted
+    steps:
+      - name: Publish current draft release, if any
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          DRAFT_TAG=$(gh release list --limit 10 --json tagName,isDraft --jq '[.[] | select(.isDraft == true)] | .[0].tagName // empty')
+
+          if [ -z "$DRAFT_TAG" ]; then
+            echo "No draft release found — nothing to publish."
+            exit 0
+          fi
+
+          echo "Publishing draft release: $DRAFT_TAG"
+          gh release edit "$DRAFT_TAG" --draft=false
